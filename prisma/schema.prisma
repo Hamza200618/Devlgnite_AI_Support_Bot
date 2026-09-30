@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -26,7 +26,7 @@ model Message {
   conversationId String
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   role           String       // user | assistant | system
-  content        String
+  content        String       @db.Text
   tokens         Int?
   createdAt      DateTime     @default(now())
 }
@@ -51,7 +51,7 @@ model KnowledgeSource {
   type       String   // url | pdf | text | faq
   title      String
   sourceUrl  String?
-  content    String?
+  content    String?  @db.Text
   status     String   @default("processing") // processing | ready | failed
   chunkCount Int      @default(0)
   createdAt  DateTime @default(now())
