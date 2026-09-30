@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Conversation {
+  id           String    @id @default(cuid())
+  sessionId    String    @unique
+  channel      String    @default("web") // web | whatsapp
+  customerName String?
+  customerEmail String?
+  customerPhone String?
+  status       String    @default("active") // active | handed_off | closed
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  messages     Message[]
+  lead         Lead?
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String       // user | assistant | system
+  content        String
+  tokens         Int?
+  createdAt      DateTime     @default(now())
+}
+
+model Lead {
+  id             String       @id @default(cuid())
+  conversationId String       @unique
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  name           String?
+  email          String?
+  phone          String?
+  company        String?
+  intent         String?      // pricing | demo | support | other
+  qualified      Boolean      @default(false)
+  meetingBooked  Boolean      @default(false)
+  calendlyUri    String?
+  createdAt      DateTime     @default(now())
+}
+
+model KnowledgeSource {
+  id         String   @id @default(cuid())
+  type       String   // url | pdf | text | faq
+  title      String
+  sourceUrl  String?
+  content    String?
+  status     String   @default("processing") // processing | ready | failed
+  chunkCount Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model AnalyticsEvent {
+  id             String   @id @default(cuid())
+  conversationId String?
+  eventType      String   // message_sent | lead_captured | handoff | booking
+  metadata       String?
+  createdAt      DateTime @default(now())
+}
